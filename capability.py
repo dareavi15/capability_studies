@@ -6,7 +6,7 @@ import random
 
 def main():
     # get info from csv files and convert it into dictionaries
-    term_dic = csv_into_dict("term_info_test1.csv")
+    term_dic = csv_into_dict("term_info_test2.csv")
     SN_dict = csv_into_dict("die_SN_test1.csv")
     machines_list = csv_into_list_mchn("machines.csv") 
     #Create folders from machines and terminals list and select the machine where the capability studies are going to be created
@@ -70,15 +70,18 @@ def csv_into_list_mchn(file): #Function that takes a csv file that has a list of
 
 
 def csv_into_dict(file): #Function that takes a csv file and get its first row element and it will be the key of the dictionary, the remain values are a list[CCH,cs area,tension]
-    with open(file, "r") as csv_file:
-        csv_reader = csv.reader(csv_file)
-        data = {}
-        for row in csv_reader:
-            key = row[0]
-            values = row[1:]
-            data[key] = values
-
-    return data
+    while True:
+        try:
+            with open(file, "r") as csv_file:
+                csv_reader = csv.reader(csv_file)
+                data = {}
+                for row in csv_reader:
+                    key = row[0]
+                    values = row[1:]
+                    data[key] = values
+            return data
+        except FileNotFoundError:
+            file = input("Couldn't find terminal/die information please input the file name including the extension: ")
 
 
 def generate_folders(machine_list): #Function that creates machine's folders 
@@ -149,7 +152,7 @@ def get_mchn_name(mchn_list):
             mchn_index = mchn_list.index(machine)
             return mchn_index
         except ValueError:
-            print("The machines is not in the list, the names must match")
+            print("The machine isn't in the list, the names must match")
 
 
 main()
