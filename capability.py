@@ -6,7 +6,7 @@ import random
 
 def main():
     # get info from csv files and convert it into dictionaries
-    term_dic = csv_into_dict("term_info_test2.csv")
+    term_dic = csv_into_dict("term_info_test1Ma.csv")
     SN_dict = csv_into_dict("die_SN_test1.csv")
     machines_list = csv_into_list_mchn("machines.csv") 
     #Create folders from machines and terminals list and select the machine where the capability studies are going to be created
