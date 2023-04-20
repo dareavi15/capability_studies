@@ -11,8 +11,7 @@ def main():
     machines_list = csv_into_list_mchn("machines.csv") 
     #Create folders from machines and terminals list and select the machine where the capability studies are going to be created
     generate_folders(machines_list)  
-    machine = input("Machine: ")
-    mchn_index = machines_list.index(machine)
+    mchn_index = get_mchn_name(machines_list)
     currpath = os.path.join(os.getcwd(), "machines", machines_list[mchn_index])
     generate_term_folders(term_dic.keys(), machines_list[mchn_index])
 
@@ -142,6 +141,15 @@ def generate_term_folders(terminals, machine): #Function tha generate folders in
             print(f"Created folder: {path}")
         else:
             print(f"Folder {path} already exists")
+
+def get_mchn_name(mchn_list):
+    while True:
+        try:
+            machine = input("Machine: ")
+            mchn_index = mchn_list.index(machine)
+            return mchn_index
+        except ValueError:
+            print("The machines is not in the list, the names must match")
 
 
 main()
