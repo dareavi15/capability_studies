@@ -16,7 +16,6 @@ def main():
     mchn_index = get_mchn_name(machines_list)
     currpath = os.path.join(os.getcwd(), "machines", machines_list[mchn_index])
     generate_term_folders(term_dic.keys(), machines_list[mchn_index])
-
     # loops over the keys that are the terminal PN
     for terminal in term_dic.keys():
         term_data = term_dic[terminal]
@@ -165,9 +164,9 @@ def rndm_data(cch_nom, area, tension, CCH_sigma, tension_sigma):
     ad_test_tension = 1
     while (
         pvalue_cch <= 0.06
-        and ad_test_cch > 0.740
-        and pvalue_tension <= 0.06
-        and ad_test_tension > 0.740
+        or ad_test_cch > 0.740
+        or pvalue_tension <= 0.06
+        or ad_test_tension > 0.740
     ):
         CCH_list = getCCH_rndm_data(cch_nom, CCH_sigma, area)
         tension_list = get_tension_rndm_data(tension_sigma, tension)
