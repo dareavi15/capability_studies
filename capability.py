@@ -2,11 +2,13 @@ import numpy as np
 import csv
 import os
 import random
+from scipy.stats import ttest_1samp
+from scipy import stats
 
 
 def main():
     # get info from csv files and convert it into dictionaries
-    term_dic = csv_into_dict("term_info_test1Ma.csv")
+    term_dic = csv_into_dict("term_info_test1.csv")
     SN_dict = csv_into_dict("die_SN_test1.csv")
     machines_list = csv_into_list_mchn("machines.csv") 
     #Create folders from machines and terminals list and select the machine where the capability studies are going to be created
@@ -23,11 +25,12 @@ def main():
             SN = SN_data[i]  
             term_data = [float(x) for x in term_data]  
             CCH_sigma, tension_sigma = rndm_sigma(term_data[1])
-            CCH_list = getCCH_rndm_data(term_data[0], CCH_sigma, term_data[1])
-            tension_list = get_tension_rndm_data(tension_sigma, term_data[2])
-            filename = f"{terminal}_{SN}.csv" 
+            CCH_list, tension_list = rndm_data(
+                term_data[0], term_data[1], term_data[2], CCH_sigma, tension_sigma
+            )
+            filename = f"{terminal}_{SN}.csv"
             header = f"{terminal} {SN} {machines_list[mchn_index]}"
-            write_csv(currpath, filename, CCH_list, tension_list, header, terminal) 
+            write_csv(currpath, filename, CCH_list, tension_list, header, terminal)
 
 
 def getCCH_rndm_data(nominal_value, sigma, cs_area): #Function to generate 100 CCH normal random values, where the nominal value is the central value or mu
@@ -153,6 +156,29 @@ def get_mchn_name(mchn_list):
             return mchn_index
         except ValueError:
             print("The machine isn't in the list, the names must match")
+
+#Function that iterates unti it achives the pvalue and anderson-darling test
+def rndm_data(cch_nom, area, tension, CCH_sigma, tension_sigma):
+    pvalue_cch = 0
+    ad_test_cch = 1
+    pvalue_tension = 0
+    ad_test_tension = 1
+    while (
+        pvalue_cch <= 0.06
+        and ad_test_cch > 0.740
+        and pvalue_tension <= 0.06
+        and ad_test_tension > 0.740
+    ):
+        CCH_list = getCCH_rndm_data(cch_nom, CCH_sigma, area)
+        tension_list = get_tension_rndm_data(tension_sigma, tension)
+        CCH_list = np.array(CCH_list)
+        tension_list = np.array(tension_list)
+        ad_test_cch = stats.anderson(CCH_list, dist="norm").statistic
+        _, pvalue_cch = ttest_1samp(CCH_list, np.mean(CCH_list))
+        ad_test_tension = stats.anderson(tension_list, dist="norm").statistic
+        _, pvalue_tension = ttest_1samp(tension_list, np.mean(tension_list))
+
+    return CCH_list, tension_list
 
 
 main()
