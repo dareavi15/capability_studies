@@ -9,30 +9,32 @@ from scipy import stats
 def main():
     # get info from csv files and convert it into dictionaries
     term_dic = csv_into_dict("term_info_test1.csv")
-    SN_dict = csv_into_dict("die_SN_test1.csv")
-    machines_list = csv_into_list_mchn("machines.csv") 
-    #Create folders from machines and terminals list and select the machine where the capability studies are going to be created
-    generate_folders(machines_list)  
+    sn_dict = csv_into_dict("die_SN_test1.csv")
+    machines_list = csv_into_list_mchn("machines.csv")
+    # Create folders from machines and terminals list and select the machine where the capability studies are going
+    # to be created
+    generate_folders(machines_list)
     mchn_index = get_mchn_name(machines_list)
     currpath = os.path.join(os.getcwd(), "machines", machines_list[mchn_index])
     generate_term_folders(term_dic.keys(), machines_list[mchn_index])
     # loops over the keys that are the terminal PN
     for terminal in term_dic.keys():
         term_data = term_dic[terminal]
-        SN_data = SN_dict[terminal]
-        for i in range(len(SN_data)):
-            SN = SN_data[i]  
-            term_data = [float(x) for x in term_data]  
-            CCH_sigma, tension_sigma = rndm_sigma(term_data[1])
-            CCH_list, tension_list = rndm_data(
-                term_data[0], term_data[1], term_data[2], CCH_sigma, tension_sigma
+        sn_data = sn_dict[terminal]
+        for i in range(len(sn_data)):
+            sn = sn_data[i]
+            term_data = [float(x) for x in term_data]
+            cch_sigma, tension_sigma = rndm_sigma(term_data[1])
+            cch_list, tension_list = rndm_data(
+                term_data[0], term_data[1], term_data[2], cch_sigma, tension_sigma
             )
-            filename = f"{terminal}_{SN}.csv"
-            header = f"{terminal} {SN} {machines_list[mchn_index]}"
-            write_csv(currpath, filename, CCH_list, tension_list, header, terminal)
+            filename = f"{terminal}_{sn}.csv"
+            header = f"{terminal} {sn} {machines_list[mchn_index]}"
+            write_csv(currpath, filename, cch_list, tension_list, header, terminal)
 
 
-def getCCH_rndm_data(nominal_value, sigma, cs_area): #Function to generate 100 CCH normal random values, where the nominal value is the central value or mu
+def getCCH_rndm_data(nominal_value, sigma,
+                     cs_area):  # Function to generate 100 CCH normal random values, where the nominal value is the central value or mu
     if 0 < cs_area <= 0.35:
         upper_limit = nominal_value + 0.03
         lowest_limit = nominal_value - 0.03
@@ -51,7 +53,8 @@ def getCCH_rndm_data(nominal_value, sigma, cs_area): #Function to generate 100 C
     return rounded_list
 
 
-def get_tension_rndm_data(sigma, tension): #Function to generate 100 tension random values, where mu is always bigger than the nominal value (25%-35%)
+def get_tension_rndm_data(sigma,
+                          tension):  # Function to generate 100 tension random values, where mu is always bigger than the nominal value (25%-35%)
     min_tension = tension
     upper_limit = min_tension * 1.35
     lowest_limit = min_tension * 1.25
@@ -62,7 +65,8 @@ def get_tension_rndm_data(sigma, tension): #Function to generate 100 tension ran
     return rand_nums_rounded.tolist()
 
 
-def csv_into_list_mchn(file): #Function that takes a csv file that has a list of machines, the function reads only one column
+def csv_into_list_mchn(
+        file):  # Function that takes a csv file that has a list of machines, the function reads only one column
     with open(file, "r") as file:
         reader = csv.reader(file)
         machine = []
@@ -71,7 +75,8 @@ def csv_into_list_mchn(file): #Function that takes a csv file that has a list of
         return machine
 
 
-def csv_into_dict(file): #Function that takes a csv file and get its first row element and it will be the key of the dictionary, the remain values are a list[CCH,cs area,tension]
+def csv_into_dict(
+        file):  # Function that takes a csv file and get its first row element and it will be the key of the dictionary, the remain values are a list[CCH,cs area,tension]
     while True:
         try:
             with open(file, "r") as csv_file:
@@ -86,7 +91,7 @@ def csv_into_dict(file): #Function that takes a csv file and get its first row e
             file = input("Couldn't find terminal/die information please input the file name including the extension: ")
 
 
-def generate_folders(machine_list): #Function that creates machine's folders 
+def generate_folders(machine_list):  # Function that creates machine's folders
     path = os.path.join(os.getcwd(), "machines")
     for folder_name in machine_list:
         folder_path = os.path.join(path, folder_name)
@@ -97,7 +102,9 @@ def generate_folders(machine_list): #Function that creates machine's folders
             print(f"Folder {folder_path} already exists")
 
 
-def write_csv(currpath, filename, cch_list, tension_list, header, terminal): #Function that writes a csv file with the random data, it has a header and save the dies in its folder
+def write_csv(currpath, filename, cch_list, tension_list, header,
+              terminal):  # Function that writes a csv file with the random data, it has a header and save the dies
+    # in its folder
     path = os.path.join(currpath, terminal, filename)
     with open(path, mode="w", newline="") as file:
         writer = csv.writer(file)
@@ -107,7 +114,9 @@ def write_csv(currpath, filename, cch_list, tension_list, header, terminal): #Fu
             writer.writerow(row)
 
 
-def rndm_sigma(cs_area): #function thath chooses a randon value of sigma, it depends of the CCH's tolerance, the more tolerances are tight sigma gets low 
+def rndm_sigma(
+        cs_area):  # function thath chooses a randon value of sigma, it depends of the CCH's tolerance, the more
+    # tolerances are tight sigma gets low
     cch_lwrsigma = 4
     cch_uprsigma = 7
     tn_lwrsigma = 5
@@ -138,7 +147,8 @@ def rndm_sigma(cs_area): #function thath chooses a randon value of sigma, it dep
     return rndm_cchsigma, rndm_tensigma
 
 
-def generate_term_folders(terminals, machine): #Function tha generate folders inside the machines folder, are a list of dies
+def generate_term_folders(terminals,
+                          machine):  # Function tha generate folders inside the machines folder, are a list of dies
     for terminal in terminals:
         path = os.path.join(os.getcwd(), "machines", machine, terminal)
         if not os.path.exists(path):
@@ -146,6 +156,7 @@ def generate_term_folders(terminals, machine): #Function tha generate folders in
             print(f"Created folder: {path}")
         else:
             print(f"Folder {path} already exists")
+
 
 def get_mchn_name(mchn_list):
     while True:
@@ -156,28 +167,29 @@ def get_mchn_name(mchn_list):
         except ValueError:
             print("The machine isn't in the list, the names must match")
 
-#Function that iterates unti it achives the pvalue and anderson-darling test
+
+# Function that iterates until it archives the pvalue and anderson-darling test
 def rndm_data(cch_nom, area, tension, CCH_sigma, tension_sigma):
     pvalue_cch = 0
     ad_test_cch = 1
     pvalue_tension = 0
     ad_test_tension = 1
     while (
-        pvalue_cch <= 0.06
-        or ad_test_cch > 0.740
-        or pvalue_tension <= 0.06
-        or ad_test_tension > 0.740
+            pvalue_cch <= 0.06
+            or ad_test_cch > 0.740
+            or pvalue_tension <= 0.06
+            or ad_test_tension > 0.740
     ):
-        CCH_list = getCCH_rndm_data(cch_nom, CCH_sigma, area)
+        cch_list = getCCH_rndm_data(cch_nom, CCH_sigma, area)
         tension_list = get_tension_rndm_data(tension_sigma, tension)
-        CCH_list = np.array(CCH_list)
+        cch_list = np.array(cch_list)
         tension_list = np.array(tension_list)
-        ad_test_cch = stats.anderson(CCH_list, dist="norm").statistic
-        _, pvalue_cch = ttest_1samp(CCH_list, np.mean(CCH_list))
+        ad_test_cch = stats.anderson(cch_list, dist="norm").statistic
+        _, pvalue_cch = ttest_1samp(cch_list, np.mean(cch_list))
         ad_test_tension = stats.anderson(tension_list, dist="norm").statistic
         _, pvalue_tension = ttest_1samp(tension_list, np.mean(tension_list))
 
-    return CCH_list, tension_list
+    return cch_list, tension_list
 
 
 main()
