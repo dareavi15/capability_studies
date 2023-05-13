@@ -34,7 +34,8 @@ def main():
 
 
 def getCCH_rndm_data(nominal_value, sigma,
-                     cs_area):  # Function to generate 100 CCH normal random values, where the nominal value is the central value or mu
+                     cs_area):  # Function to generate 100 CCH normal random values, where the nominal value is the
+    # central value or mu
     if 0 < cs_area <= 0.35:
         upper_limit = nominal_value + 0.03
         lowest_limit = nominal_value - 0.03
@@ -65,8 +66,7 @@ def get_tension_rndm_data(sigma,
     return rand_nums_rounded.tolist()
 
 
-def csv_into_list_mchn(
-        file):  # Function that takes a csv file that has a list of machines, the function reads only one column
+def csv_into_list_mchn(file):  # Function that takes a csv file that has a list of machines, the function reads only one column
     with open(file, "r") as file:
         reader = csv.reader(file)
         machine = []
@@ -76,7 +76,8 @@ def csv_into_list_mchn(
 
 
 def csv_into_dict(
-        file):  # Function that takes a csv file and get its first row element and it will be the key of the dictionary, the remain values are a list[CCH,cs area,tension]
+        file):  # Function that takes a csv file and get its first row element and it will be the key of the
+    # dictionary, the remain values are a list[CCH,cs area,tension]
     while True:
         try:
             with open(file, "r") as csv_file:
@@ -169,7 +170,7 @@ def get_mchn_name(mchn_list):
 
 
 # Function that iterates until it archives the pvalue and anderson-darling test
-def rndm_data(cch_nom, area, tension, CCH_sigma, tension_sigma):
+def rndm_data(cch_nom, area, tension, cch_sigma, tension_sigma):
     pvalue_cch = 0
     ad_test_cch = 1
     pvalue_tension = 0
@@ -180,7 +181,7 @@ def rndm_data(cch_nom, area, tension, CCH_sigma, tension_sigma):
             or pvalue_tension <= 0.06
             or ad_test_tension > 0.740
     ):
-        cch_list = getCCH_rndm_data(cch_nom, CCH_sigma, area)
+        cch_list = getCCH_rndm_data(cch_nom, cch_sigma, area)
         tension_list = get_tension_rndm_data(tension_sigma, tension)
         cch_list = np.array(cch_list)
         tension_list = np.array(tension_list)
