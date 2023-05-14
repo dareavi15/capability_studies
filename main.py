@@ -15,8 +15,8 @@ for terminal, values in tqdm(term_dic.items()):
     series = term_series[terminal]
     for i in range(len(series)):
         serial = series[i]
-        sigma_cch = DieObj.random_cch_sigma(7, 3, 2)
-        sigma_tension = DieObj.random_tension_sigma(9, 4)
+        sigma_cch = DieObj.random_cch_sigma(8, 4, 2)
+        sigma_tension = DieObj.random_tension_sigma(13, 9)
         cch_data = DieObj.normalCCH_rndmData(100)
         tension_data = DieObj.normalTension_rndmData(100, 2)
         file.outFile(terminal, serial, machine)

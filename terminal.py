@@ -13,28 +13,42 @@ class die():
         self.nominal_cch = float(term_info[0])
         self.minTension = float(term_info[2])
         self.cs_area = float(term_info[1])
-        self.cch_data = []
-        self.tension_data = []
         self.cch_sigma = 0
         self.tension_sigma = 0
+        self.cch_cpk = 0
+        self.ten_cpk = 0
      
 
     def normalCCH_rndmData(self, samples):
         pvalue = 0
         ad_test = 1
+        rounded_list = []
         while pvalue <= 0.06 or ad_test > 0.75:
             rand_nums = np.random.normal(self.nominal_cch, self.cch_sigma, samples)
             rand_nums_rounded = np.round(rand_nums, 3)
             rounded_list = rand_nums_rounded.tolist()
             ad_test = stats.anderson(rounded_list, dist="norm").statistic
             _, pvalue = ttest_1samp(rounded_list, self.nominal_cch)
-            
-        self.cch_data = rounded_list
+
+        x_bar = np.mean(rounded_list)
+        s = np.std(rounded_list, ddof=1)
+        LSL = self.nominal_cch - 0.05
+        USL = self.nominal_cch + 0.05
+        if self.cs_area <= 0.35:
+            LSL = self.nominal_cch - 0.03
+            USL = self.nominal_cch + 0.03
+        if self.cs_area > 8:
+            LSL = self.nominal_cch - 0.1
+            USL = self.nominal_cch + 0.1
+        cpk = min((USL - x_bar) / (3 * s), (x_bar - LSL) / (3 * s))
+        self.cch_cpk = round(cpk, 3)
+
         return rand_nums_rounded.tolist()
 
     def normalTension_rndmData(self, samples, factor):
         pvalue = 0
         ad_test = 1
+        rounded_list = []
         while pvalue <= 0.06 or ad_test > 0.75:
             rand_nums = np.random.normal(self.minTension * factor, self.tension_sigma, samples)
             rand_nums_rounded = np.round(rand_nums, 1)
@@ -42,7 +56,12 @@ class die():
             ad_test = stats.anderson(rounded_list, dist="norm").statistic
             _, pvalue = ttest_1samp(rounded_list, self.minTension * factor)
 
-        self.tension_data = rounded_list
+        x_bar = np.mean(rounded_list)
+        s = np.std(rounded_list, ddof=1)
+        LSL = self.minTension
+        cpk = (x_bar - LSL) / (3 * s)
+        self.ten_cpk = round(cpk, 3)
+
         return rand_nums_rounded.tolist()
 
     def random_cch_sigma(self, max_sigma, min_sigma, factor):
@@ -68,29 +87,6 @@ class die():
         self.tension_sigma = random.choice(cch_sigma_list)
         return random.choice(cch_sigma_list)
 
-        
-
-    def cpk_ppk(self, tol_type, data):
-        x_bar = np.mean(data)
-        s = np.std(data, ddof=1)
-        if tol_type != "ten":
-            LSL = self.nominal_cch - 0.05
-            USL = self.nominal_cch + 0.05
-            if self.cs_area <= 0.35:
-                LSL = self.nominal_cch - 0.03
-                USL = self.nominal_cch + 0.03
-            if self.cs_area > 8:
-                LSL = self.nominal_cch - 0.1
-                USL = self.nominal_cch + 0.1
-            cpk = min((USL - x_bar) / (3 * s), (x_bar - LSL) / (3 * s))
-        else:
-            LSL = self.minTension
-            cpk = (x_bar - LSL) / (3 * s)
-
-        return round(cpk, 3)
-
-
-
 
 class machine():
     def __init__(self, serial):
@@ -105,6 +101,7 @@ class file():
         self.filename = None
         self.path = None
         self.terminal = None
+
 
 
     def csv2dict(self, filename):
