@@ -5,6 +5,7 @@ import os
 import random
 from scipy.stats import ttest_1samp
 from scipy import stats
+from colorama import Fore, Back, Style
 
 
 class die():
@@ -17,18 +18,22 @@ class die():
         self.tension_sigma = 0
         self.cch_cpk = 0
         self.ten_cpk = 0
+        self.cch_ADTest = 0
+        self.cch_pvalue = 0
+        self.tension_ADTest = 0
+        self.tension_pvalue = 0
      
 
     def normalCCH_rndmData(self, samples):
-        pvalue = 0
-        ad_test = 1
+        self.cch_pvalue = 0
+        self.cch_ADTest = 1
         rounded_list = []
-        while pvalue <= 0.06 or ad_test > 0.75:
+        while self.cch_pvalue <= 0.06 or self.cch_ADTest > 0.75:
             rand_nums = np.random.normal(self.nominal_cch, self.cch_sigma, samples)
             rand_nums_rounded = np.round(rand_nums, 3)
             rounded_list = rand_nums_rounded.tolist()
-            ad_test = stats.anderson(rounded_list, dist="norm").statistic
-            _, pvalue = ttest_1samp(rounded_list, self.nominal_cch)
+            self.cch_ADTest = stats.anderson(rounded_list, dist="norm").statistic
+            _, self.cch_pvalue = ttest_1samp(rounded_list, self.nominal_cch)
 
         x_bar = np.mean(rounded_list)
         s = np.std(rounded_list, ddof=1)
@@ -46,15 +51,15 @@ class die():
         return rand_nums_rounded.tolist()
 
     def normalTension_rndmData(self, samples, factor):
-        pvalue = 0
-        ad_test = 1
+        self.tension_pvalue = 0
+        self.tension_ADTest = 1
         rounded_list = []
-        while pvalue <= 0.06 or ad_test > 0.75:
+        while self.tension_pvalue <= 0.06 or self.tension_ADTest > 0.75:
             rand_nums = np.random.normal(self.minTension * factor, self.tension_sigma, samples)
             rand_nums_rounded = np.round(rand_nums, 1)
             rounded_list = rand_nums_rounded.tolist()
-            ad_test = stats.anderson(rounded_list, dist="norm").statistic
-            _, pvalue = ttest_1samp(rounded_list, self.minTension * factor)
+            self.tension_ADTest = stats.anderson(rounded_list, dist="norm").statistic
+            _, self.tension_pvalue = ttest_1samp(rounded_list, self.minTension * factor)
 
         x_bar = np.mean(rounded_list)
         s = np.std(rounded_list, ddof=1)
@@ -86,6 +91,15 @@ class die():
             
         self.tension_sigma = random.choice(cch_sigma_list)
         return random.choice(cch_sigma_list)
+    def print_estimates(self, serial):
+        self.cch_ADTest = round(self.cch_ADTest, 2)
+        self.cch_pvalue = round(self.cch_pvalue, 2)
+        self.tension_ADTest = round(self.tension_ADTest, 2)
+        self.tension_pvalue = round(self.tension_pvalue, 2)
+        print(f"Terminal: {self.terminal} Serie: {serial}",
+              f" CCH Cpk: {self.cch_cpk} A2: {self.cch_ADTest} P-value: {self.cch_pvalue} ",
+              f"Tension Cpk: {self.ten_cpk} A2: {self.tension_ADTest} P-value: {self.tension_pvalue}")
+        
 
 
 class machine():
@@ -139,23 +153,31 @@ class file():
             else:
                 print(f"Folder {folder_path} already exists")
     
-    def outFile(self, terminal, serie, machine):
-        self.filename = f"{terminal}_{serie}.csv"
+    def outFile(self, terminal, area, serie, machine):
+        self.filename = f"{terminal}_{area}_{serie}.csv"
         self.header = f"{terminal} {serie} {machine}"
         self.path = os.path.join(os.getcwd(), "machines", machine, terminal)
         if not os.path.exists(self.path):
             os.mkdir(self.path)
-            print(f"Created folder: {self.path}")
         self.terminal = terminal
 
     def write_csv(self, cch_list, tension_list):
-        path = os.path.join(self.path, self.filename)
-        with open(path, mode="w", newline="") as file:
+        self.path = os.path.join(self.path, self.filename)
+        with open(self.path, mode="w", newline="") as file:
             writer = csv.writer(file)
             writer.writerow([self.header])
             writer.writerow(["CCH", "tension"])
             for row in zip(cch_list, tension_list):
                 writer.writerow(row)
+    
+    def get_MachineName(self):
+        while True:
+            try:
+                machine = input("Machine: ")
+                mchn_index = self.machines_list.index(machine)
+                return self.machines_list[mchn_index]
+            except ValueError:
+                print("The machine isn't in the list, the names must match")
         
         
         
